@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "baseUrl": "ClientApp",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "target": "es5",
+    "jsx": "react",
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "skipDefaultLibCheck": true,
+    "strict": false,
+    "noImplicitReturns": true,
+    "allowUnusedLabels": false,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "types": [
+      "webpack-env"
+    ],
+    "resolveJsonModule": true
+  },
+  "exclude": [
+    "bin",
+    "node_modules"
+  ]
+}

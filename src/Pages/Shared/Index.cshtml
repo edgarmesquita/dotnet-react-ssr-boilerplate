@@ -1,0 +1,84 @@
+﻿@inject Microsoft.AspNetCore.SpaServices.Prerendering.ISpaPrerenderer prerenderer
+@inject Example.Environment.IApplicationContext appContext
+@using System.Text.RegularExpressions
+@using Newtonsoft.Json
+@using Example.Models
+@using Microsoft.AspNetCore.Localization
+@model object
+@{
+    Layout = null;
+    var rqf = this.Context.Request.HttpContext.Features.Get<IRequestCultureFeature>();
+    var nodeSession = (NodeSession)ViewBag.NodeSession;
+    var prerenderResult = await prerenderer.RenderToString("ClientApp/dist/main-server", customDataParameter: new
+    {
+        Culture = rqf.RequestCulture.Culture,
+        nodeSession.Private,
+        nodeSession.Public,
+        Model
+    });
+    var publicSessionJson = prerenderResult?.Globals?["nodeSession"]["public"]?.ToString();
+    var modelJson = prerenderResult?.Globals?["nodeSession"]["model"]?.ToString();
+    var initialReduxStateJson = prerenderResult?.Globals?["initialReduxState"]?.ToString();
+    var completedTasksJson = prerenderResult?.Globals?["completedTasks"]?.ToString();
+    var regex = new Regex("<(.*)>");
+
+    var helmetStringsPrerender = regex.Match(prerenderResult?.Globals?["helmetStrings"]?.ToString()).Value;
+}
+<html lang="@rqf.RequestCulture.Culture">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+    <environment include="Production">
+        @if (!Context.Request.IsHttps)
+        {
+            <meta http-equiv="refresh" content="0; url=https://@Context.Request.Host@Context.Request.Path">
+        }
+    </environment>
+    
+    <meta name="author" content="eQuantic Systems" />
+    <meta name="description" content="Criação de sites, sistemas, campanhas digitais, gerenciamento de redes sociais." />
+    <link rel="canonical" href="https://equantic.pt/" />
+
+    @Html.Raw(helmetStringsPrerender)
+    <base href="~/" />
+
+    <link href="//fonts.googleapis.com/css?family=Baloo+Thambi" rel="stylesheet" />
+    <link rel="stylesheet" href="~/dist/vendor.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/dist/site.css" asp-append-version="true" />
+
+    <script>
+        window.publicSession = @Html.Raw(string.IsNullOrEmpty(publicSessionJson) ? "null" : publicSessionJson);
+        window.model = @Html.Raw(string.IsNullOrEmpty(modelJson) ? "null" : modelJson);
+        window.initialReduxState = @Html.Raw(initialReduxStateJson);
+        window.completedTasks = @Html.Raw(completedTasksJson);
+    </script>
+</head>
+<body>
+
+    <div id="preloader">
+        <div>Loading...</div>
+    </div>
+
+    @* Save the request token in a div. CORS needs to make sure this token can't be read by javascript from other sources than ours *@
+    <div id="xsrf-token" data-xsrf-token="@ViewBag.AntiForgeryRequestToken"></div>
+    <div id="access-token" data-access-token="@ViewBag.accessToken"></div>
+
+    <div id="react-app">@Html.Raw(prerenderResult?.Html)</div>
+
+    <script src="~/dist/vendor.js" asp-append-version="true"></script>
+    <script src="~/dist/main-client.js" asp-append-version="true"></script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-12355923-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-12355923-1');
+    </script>
+
+</body>
+</html>
