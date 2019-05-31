@@ -332,3 +332,4 @@ ASALocalRun/
 
 **/ClientApp/dist
 **/wwwroot/dist
+**/package-lock.json
